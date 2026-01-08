@@ -44,11 +44,4 @@ app.*.map.json
 /android/app/release
 
 # Flutter Web
-web/
-
-# Exceptions to above rules.
-!/web/favicon.png
-!/web/icons/
-!/web/index.html
-!/web/manifest.json
-!/web/splash/
+# web/ (Tracked by default now)
