@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "733287524302",
+    "firebase_url": "https://tutor-finder-dotio-default-rtdb.firebaseio.com",
+    "project_id": "tutor-finder-dotio",
+    "storage_bucket": "tutor-finder-dotio.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733287524302:android:ec527273f0120e4c616d9f",
+        "android_client_info": {
+          "package_name": "com.example.tutor_finder_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733287524302-t23il2584ol67ivmi4tqa1rp744sb9f9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tutor_finder_app",
+            "certificate_hash": "500f6d32ff60fc9bc74a07796b2377521524fde6"
+          }
+        },
+        {
+          "client_id": "733287524302-fn9ue86r8o5ebpmaa6qd28ptb5ogfeag.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYIRxOfoMhIGTbNKXISehs1IutCRWJj8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733287524302-fn9ue86r8o5ebpmaa6qd28ptb5ogfeag.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733287524302-4gltst40apeie00h5uu5aaq8nbhk5vip.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.tutorFinderApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
