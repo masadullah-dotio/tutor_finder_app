@@ -16,4 +16,17 @@ class ReportRepository {
       return Left(e.toString());
     }
   }
+
+  Stream<List<ReportModel>> getReportsByStudent(String studentId) {
+    return _firestore
+        .collection('reports')
+        .where('reporterId', isEqualTo: studentId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => ReportModel.fromMap(doc.data()))
+          .toList();
+    });
+  }
 }

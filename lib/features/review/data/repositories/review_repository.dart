@@ -53,4 +53,17 @@ class ReviewRepository {
           .toList();
     });
   }
+
+  Stream<List<ReviewModel>> getReviewsByStudent(String studentId) {
+    return _firestore
+        .collection('reviews')
+        .where('studentId', isEqualTo: studentId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => ReviewModel.fromMap(doc.data()))
+          .toList();
+    });
+  }
 }

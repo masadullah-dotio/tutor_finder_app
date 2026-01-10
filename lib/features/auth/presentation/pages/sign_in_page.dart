@@ -9,6 +9,7 @@ import 'package:tutor_finder_app/features/auth/presentation/pages/sign_up_page.d
 import 'package:tutor_finder_app/features/parent/presentation/pages/parent_dashboard.dart';
 import 'package:tutor_finder_app/features/student/presentation/pages/student_dashboard.dart';
 import 'package:tutor_finder_app/features/tutor/presentation/pages/tutor_dashboard.dart';
+import 'package:flutter/foundation.dart'; // For kDebugMode
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -58,17 +59,33 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const _HeaderBranding(isMobile: true),
-            const SizedBox(height: 48),
-            const _SignInForm(),
-          ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.gradientStart, AppColors.gradientEnd],
+        ),
+      ),
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Card(
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _HeaderBranding(isMobile: true),
+                  const SizedBox(height: 48),
+                  const _SignInForm(),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -91,8 +108,8 @@ class _DesktopLayout extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryVariant,
-                  AppColors.secondaryVariant,
+                  AppColors.gradientStart,
+                  AppColors.gradientEnd,
                 ],
               ),
             ),
@@ -154,6 +171,8 @@ class _HeaderBranding extends StatelessWidget {
             'Find your perfect tutor today.',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: Colors.white70,
+                  
+                  
                 ),
           ),
         ],
@@ -246,8 +265,7 @@ class _SignInFormState extends State<_SignInForm> with SingleTickerProviderState
             routeName = AppRoutes.studentDashboard; 
             break;
           case UserRole.admin:
-             // Placeholder route
-            routeName = AppRoutes.studentDashboard;
+            routeName = AppRoutes.adminDashboard;
             break;
         }
 
@@ -374,6 +392,7 @@ class _SignInFormState extends State<_SignInForm> with SingleTickerProviderState
           },
           child: const Text("Don't have an account? Sign Up"),
         ),
+
       ],
     );
   }

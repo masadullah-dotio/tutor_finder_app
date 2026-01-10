@@ -1,1 +1,16 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"tutor-finder-dotio","appId":"1:733287524302:android:ec527273f0120e4c616d9f","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"tutor-finder-dotio","configurations":{"android":"1:733287524302:android:ec527273f0120e4c616d9f","ios":"1:733287524302:ios:0d46169fc6eb0d5e616d9f","web":"1:733287524302:web:3d4256e1e77b658b616d9f"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

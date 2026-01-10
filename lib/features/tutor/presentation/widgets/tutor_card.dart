@@ -92,7 +92,7 @@ class _TutorCardState extends State<TutorCard> with SingleTickerProviderStateMix
                     backgroundImage: ImageHelper.getUserImageProvider(widget.tutor.profileImageUrl),
                     child: widget.tutor.profileImageUrl == null
                         ? Text(
-                            widget.tutor.firstName[0].toUpperCase(),
+                            (widget.tutor.firstName ?? '').isNotEmpty ? widget.tutor.firstName![0].toUpperCase() : 'T',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -113,7 +113,7 @@ class _TutorCardState extends State<TutorCard> with SingleTickerProviderStateMix
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${widget.tutor.firstName} ${widget.tutor.lastName}',
+                            '${widget.tutor.firstName ?? ''} ${widget.tutor.lastName ?? ''}'.trim(),
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -181,7 +181,7 @@ class _TutorCardState extends State<TutorCard> with SingleTickerProviderStateMix
                           context: context,
                           builder: (context) => ReportDialog(
                             reportedUserId: widget.tutor.uid,
-                            reportedUserName: '${widget.tutor.firstName} ${widget.tutor.lastName}',
+                            reportedUserName: '${widget.tutor.firstName ?? ''} ${widget.tutor.lastName ?? ''}'.trim(),
                           ),
                         );
                       },

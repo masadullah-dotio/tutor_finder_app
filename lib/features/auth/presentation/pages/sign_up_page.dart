@@ -58,9 +58,22 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.gradientStart, AppColors.gradientEnd],
+        ),
+      ),
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Card(
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,9 +82,11 @@ class _MobileLayout extends StatelessWidget {
             const SizedBox(height: 48),
             const _SignUpForm(),
           ],
+            ),
+          ),
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -91,8 +106,8 @@ class _DesktopLayout extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryVariant,
-                  AppColors.secondaryVariant,
+                  AppColors.gradientStart,
+                  AppColors.gradientEnd,
                 ],
               ),
             ),
@@ -230,8 +245,12 @@ class _SignUpFormState extends State<_SignUpForm> {
             case UserRole.tutor:
               routeName = AppRoutes.tutorDashboard;
               break;
+            case UserRole.admin:
+              routeName = AppRoutes.adminDashboard;
+              break;
             default:
               routeName = AppRoutes.studentDashboard;
+              break;
           }
 
           Navigator.of(context).pushReplacementNamed(routeName);
@@ -357,7 +376,7 @@ class _SignUpFormState extends State<_SignUpForm> {
               prefixIcon: Icon(Icons.badge_outlined),
             ),
             items: UserRole.values
-                .where((role) => role != UserRole.admin)
+                .where((role) => role != UserRole.admin) // Uncomment to hide admin
                 .map((role) {
               return DropdownMenuItem(
                 value: role,

@@ -21,30 +21,50 @@ class StudentDashboardHome extends StatefulWidget {
 
 class _StudentDashboardHomeState extends State<StudentDashboardHome> {
   final AuthService _authService = AuthService();
-  List<UserModel> _tutors = [];
+  List<UserModel> _allTutors = [];
+  List<UserModel> _recommendedTutors = [];
+  UserModel? _currentUser;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _fetchTutors();
+    _authService.updateCurrentUserLocation(); // Update location on app start
   }
 
   Future<void> _fetchTutors() async {
-    final tutors = await _authService.getAllTutors();
-    if (mounted) {
-      setState(() {
-        _tutors = tutors;
-        _isLoading = false;
-      });
+    try {
+      final user = await _authService.getCurrentUser();
+      final tutors = await _authService.getAllTutors();
+      
+      List<UserModel> recommended = [];
+      if (user?.subjects != null && user!.subjects!.isNotEmpty) {
+        recommended = tutors.where((tutor) {
+          if (tutor.subjects == null) return false;
+          // specific match logic: check if any subject intersects
+          return tutor.subjects!.any((s) => user.subjects!.contains(s));
+        }).toList();
+      }
+
+      if (mounted) {
+        setState(() {
+          _currentUser = user;
+          _allTutors = tutors;
+          _recommendedTutors = recommended;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+      print('Error loading dashboard: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // For "Recommended", we can just pick the first few or filter by some logic.
-    // For now, let's just reverse the list or take the first 5.
-    final recommendedTutors = _tutors.take(5).toList();
+    // For "Recommended", we use the filtered list.
+    // If no user subjects (interests), we might show a prompt.
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -96,27 +116,7 @@ class _StudentDashboardHomeState extends State<StudentDashboardHome> {
           const SizedBox(height: 8),
           _isLoading 
             ? const Center(child: CircularProgressIndicator()) 
-            : _tutors.isEmpty 
-              ? _buildEmptyState('No tutors available yet.')
-              : SizedBox(
-                  height: 260, // Height for TutorCard + Padding
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: recommendedTutors.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: SizedBox(
-                          width: 280, // Fixed width for horizontal card
-                          child: TutorCard(
-                            tutor: recommendedTutors[index],
-                            onTap: () => _navigateToDetails(context, recommendedTutors[index]),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+            : _buildRecommendedSection(),
 
           const SizedBox(height: 24),
           const Text(
@@ -127,16 +127,16 @@ class _StudentDashboardHomeState extends State<StudentDashboardHome> {
           
           _isLoading 
             ? const Center(child: CircularProgressIndicator()) 
-            : _tutors.isEmpty
-              ? const SizedBox.shrink()
+            : _allTutors.isEmpty
+              ? const Center(child: Text("No tutors found."))
               : ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _tutors.length,
+                  itemCount: _allTutors.length,
                   itemBuilder: (context, index) {
                     return TutorCard(
-                      tutor: _tutors[index],
-                      onTap: () => _navigateToDetails(context, _tutors[index]),
+                      tutor: _allTutors[index],
+                      onTap: () => _navigateToDetails(context, _allTutors[index]),
                     );
                   },
                 ),
@@ -232,26 +232,93 @@ class _StudentDashboardHomeState extends State<StudentDashboardHome> {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
-          const Icon(Icons.person_search, size: 48, color: Colors.grey),
+          Icon(Icons.person_search, size: 48, color: Colors.grey[500]),
           const SizedBox(height: 8),
-          Text(message, style: const TextStyle(color: Colors.grey)),
+          Text(message, style: TextStyle(color: Colors.grey[500])),
         ],
       ),
     );
   }
 
+  Widget _buildRecommendedSection() {
+    if (_currentUser?.subjects == null || _currentUser!.subjects!.isEmpty) {
+      return _buildEmptyState('Add interests to your profile to see recommendations.');
+    }
+    
+    if (_recommendedTutors.isEmpty) {
+      return _buildEmptyState('No tutors found matching your interests.');
+    }
+
+    return SizedBox(
+      height: 260,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _recommendedTutors.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: SizedBox(
+              width: 280,
+              child: TutorCard(
+                tutor: _recommendedTutors[index],
+                onTap: () => _navigateToDetails(context, _recommendedTutors[index]),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _navigateToDetails(BuildContext context, UserModel tutor) {
+    // Strict Verification Check
+    if (_currentUser != null && 
+        (!_currentUser!.isEmailVerified || !_currentUser!.isMobilePhoneVerified)) {
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.lock_outline, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Verification Required'),
+            ],
+          ),
+          content: const Text(
+            'To view tutor details and book sessions, you must verify both your email and phone number.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to Settings (Index 7)
+                // We can't easily switch the tab from here without a callback or using global key, 
+                // but pushing the Settings Page works too.
+                Navigator.pushNamed(context, AppRoutes.studentSettings);
+              },
+              child: const Text('Go to Settings'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     Navigator.of(context).pushNamed(
       AppRoutes.tutorDetails,
       arguments: {
         'tutor': tutor,
-        // Calculate distance if needed, or pass null, or get from LocationService if available here
       },
     );
   }

@@ -9,6 +9,7 @@ import 'package:tutor_finder_app/core/services/location_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tutor_finder_app/core/services/storage_service.dart';
 import 'package:tutor_finder_app/core/utils/image_helper.dart';
+import 'package:tutor_finder_app/core/utils/app_constants.dart';
 import 'package:geolocator/geolocator.dart';
 
 class TutorProfilePage extends StatefulWidget {
@@ -21,8 +22,15 @@ class TutorProfilePage extends StatefulWidget {
 class _TutorProfilePageState extends State<TutorProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _bioController = TextEditingController();
-  final _subjectsController = TextEditingController(); // Comma separated for MVP
+  // final _subjectsController = TextEditingController(); // Removed for Chips
   final _hourlyRateController = TextEditingController();
+  
+  // New Controllers
+  final _travelRadiusController = TextEditingController();
+  final _homeRateDiffController = TextEditingController();
+  
+  List<String> _selectedSubjects = [];
+  List<String> _selectedTeachingModes = [];
   
   bool _isLoading = false;
   UserModel? _currentUser;
@@ -42,8 +50,13 @@ class _TutorProfilePageState extends State<TutorProfilePage> {
       if (doc.exists) {
         _currentUser = UserModel.fromMap(doc.data()!);
         _bioController.text = _currentUser?.bio ?? '';
-        _subjectsController.text = _currentUser?.subjects?.join(', ') ?? '';
+        _bioController.text = _currentUser?.bio ?? '';
+        // _subjectsController.text = _currentUser?.subjects?.join(', ') ?? '';
+        _selectedSubjects = List<String>.from(_currentUser?.subjects ?? []);
         _hourlyRateController.text = _currentUser?.hourlyRate?.toString() ?? '';
+        _selectedTeachingModes = List<String>.from(_currentUser?.teachingModes ?? []);
+        _travelRadiusController.text = _currentUser?.travelRadiusKm?.toString() ?? '';
+        _homeRateDiffController.text = _currentUser?.homeRateDifferential?.toString() ?? '';
       }
     }
     if (mounted) setState(() => _isLoading = false);
@@ -52,8 +65,10 @@ class _TutorProfilePageState extends State<TutorProfilePage> {
   @override
   void dispose() {
     _bioController.dispose();
-    _subjectsController.dispose();
+    // _subjectsController.dispose();
     _hourlyRateController.dispose();
+    _travelRadiusController.dispose();
+    _homeRateDiffController.dispose();
     super.dispose();
   }
 
@@ -64,16 +79,19 @@ class _TutorProfilePageState extends State<TutorProfilePage> {
     setState(() => _isLoading = true);
 
     try {
-      final subjectsList = _subjectsController.text
+      /* final subjectsList = _subjectsController.text
           .split(',')
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)
-          .toList();
+          .toList(); */
 
       final updatedUser = _currentUser!.copyWith(
         bio: _bioController.text.trim(),
-        subjects: subjectsList,
+        subjects: _selectedSubjects,
         hourlyRate: double.tryParse(_hourlyRateController.text.trim()),
+        teachingModes: _selectedTeachingModes,
+        travelRadiusKm: double.tryParse(_travelRadiusController.text.trim()),
+        homeRateDifferential: double.tryParse(_homeRateDiffController.text.trim()),
         updatedAt: DateTime.now(),
       );
 
@@ -195,7 +213,9 @@ class _TutorProfilePageState extends State<TutorProfilePage> {
                     backgroundImage: ImageHelper.getUserImageProvider(_currentUser?.profileImageUrl),
                     child: _currentUser?.profileImageUrl == null
                         ? Text(
-                            _currentUser?.firstName[0].toUpperCase() ?? 'T',
+                            (_currentUser?.firstName ?? '').isNotEmpty 
+                                ? _currentUser!.firstName![0].toUpperCase() 
+                                : 'T',
                             style: const TextStyle(fontSize: 40, color: Colors.grey),
                           )
                         : null,
@@ -233,16 +253,88 @@ class _TutorProfilePageState extends State<TutorProfilePage> {
             ),
             const SizedBox(height: 16),
 
-            // Subjects
-            TextFormField(
-              controller: _subjectsController,
-              decoration: const InputDecoration(
-                labelText: 'Subjects (comma separated)',
-                hintText: 'e.g. Math, Physics, English',
-                prefixIcon: Icon(Icons.class_outlined),
-              ),
-              validator: (val) => val == null || val.isEmpty ? 'Please enter at least one subject' : null,
+            // Subjects (Chips)
+            const Text('Subjects', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: AppConstants.subjectsList.map((subject) {
+                return FilterChip(
+                  label: Text(subject),
+                  selected: _selectedSubjects.contains(subject),
+                  onSelected: (bool selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedSubjects.add(subject);
+                      } else {
+                        _selectedSubjects.remove(subject);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
             ),
+            if (_selectedSubjects.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text('Please select at least one subject', style: TextStyle(color: Colors.red, fontSize: 12)),
+              ),
+            const SizedBox(height: 16),
+
+            // Teaching Modes
+            const Text('Teaching Modes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            CheckboxListTile(
+              title: const Text('Online Tuition'),
+              value: _selectedTeachingModes.contains('online'),
+              onChanged: (val) {
+                setState(() {
+                  if (val == true) {
+                    _selectedTeachingModes.add('online');
+                  } else {
+                    _selectedTeachingModes.remove('online');
+                  }
+                });
+              },
+            ),
+            CheckboxListTile(
+              title: const Text('Home Tuition (In-Person)'),
+              value: _selectedTeachingModes.contains('home'),
+              onChanged: (val) {
+                setState(() {
+                  if (val == true) {
+                    _selectedTeachingModes.add('home');
+                  } else {
+                    _selectedTeachingModes.remove('home');
+                  }
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Home Tuition Specific Fields
+            if (_selectedTeachingModes.contains('home')) ...[
+               TextFormField(
+                controller: _travelRadiusController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Travel Radius (km)',
+                  prefixIcon: Icon(Icons.map),
+                  helperText: 'How far are you willing to travel?',
+                ),
+              ),
+              const SizedBox(height: 16),
+               TextFormField(
+                controller: _homeRateDiffController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Home Tuition Rate Extra (\u0024)',
+                  prefixIcon: Icon(Icons.add_circle_outline),
+                  helperText: 'Extra amount added to hourly rate for home tuition',
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             const SizedBox(height: 16),
 
             // Hourly Rate

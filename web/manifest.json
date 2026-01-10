@@ -1,11 +1,11 @@
 {
-    "name": "tutor_finder_app",
-    "short_name": "tutor_finder_app",
+    "name": "Tutor Finder",
+    "short_name": "Tutor Finder",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Find the perfect tutor for your needs. Book online or home sessions easily.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

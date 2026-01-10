@@ -107,7 +107,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           radius: 18,
                            backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                           child: Text(
-                            otherUser.firstName[0].toUpperCase(),
+                            (otherUser.firstName ?? '').isNotEmpty ? otherUser.firstName![0].toUpperCase() : '?',
                             style: TextStyle(
                               color: Theme.of(context).primaryColor, 
                               fontWeight: FontWeight.bold
@@ -136,7 +136,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${otherUser.firstName} ${otherUser.lastName}',
+                        '${otherUser.firstName ?? ''} ${otherUser.lastName ?? ''}'.trim(),
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       if (isOnline)
@@ -193,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         Icon(Icons.mark_chat_unread_outlined, size: 64, color: Colors.grey[400]),
                         const SizedBox(height: 16),
                         Text(
-                          'Say hi to ${widget.otherUser.firstName}!',
+                          'Say hi to ${widget.otherUser.firstName ?? 'User'}!',
                           style: TextStyle(color: Colors.grey[600], fontSize: 16),
                         ),
                       ],

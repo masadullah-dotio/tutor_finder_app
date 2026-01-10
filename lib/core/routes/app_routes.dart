@@ -5,6 +5,7 @@ class AppRoutes {
   static const String signIn = '/sign-in';
   static const String studentDashboard = '/student-dashboard';
   static const String tutorDashboard = '/tutor-dashboard';
+  static const String adminDashboard = '/admin-dashboard';
   static const String tutorDetails = '/tutor-details';
   static const String chatList = '/chat-list';
   static const String chatScreen = '/chat-screen';
@@ -19,4 +20,6 @@ class AppRoutes {
   static const String bookingSuccess = '/booking-success';
   static const String writeReview = '/write-review';
   static const String notifications = '/notifications';
+  static const String paymentSuccess = '/payment-success';
+  static const String paymentCancelled = '/payment-cancelled';
 }

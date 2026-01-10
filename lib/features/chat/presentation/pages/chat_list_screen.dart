@@ -156,13 +156,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       backgroundImage: ImageHelper.getUserImageProvider(otherUser.profileImageUrl),
                       child: otherUser.profileImageUrl == null
                           ? Text(
-                              otherUser.firstName[0].toUpperCase(),
+                              (otherUser.firstName ?? '').isNotEmpty ? otherUser.firstName![0].toUpperCase() : '?',
                               style: TextStyle(color: Theme.of(context).primaryColor),
                             )
                           : null,
                     ),
                     title: Text(
-                      '${otherUser.firstName} ${otherUser.lastName}',
+                      '${otherUser.firstName ?? ''} ${otherUser.lastName ?? ''}'.trim(),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(

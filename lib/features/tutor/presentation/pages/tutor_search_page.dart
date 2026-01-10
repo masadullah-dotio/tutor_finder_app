@@ -52,10 +52,10 @@ class _TutorSearchPageState extends State<TutorSearchPage> {
   // Location State
   final LocationService _locationService = LocationService();
   Position? _currentPosition;
-  double _searchRadiusKm = 10.0; // Default radius
+  double _searchRadiusKm = 5.0; // Default radius
   bool _useLocationFilter = true; // Default to TRUE as per requirement
   bool _hasLocationPermission = false;
-  final double _maxRadius = 50.0;
+  final double _maxRadius = 10.0; // Max 10km as per requirement
 
   @override
   void initState() {
@@ -654,7 +654,7 @@ class _TutorSearchPageState extends State<TutorSearchPage> {
                       value: _searchRadiusKm,
                       min: 1,
                       max: _maxRadius,
-                      divisions: 49,
+                      divisions: 9, // 10 - 1 = 9 divisions
                       label: '${_searchRadiusKm.round()} km',
                       onChanged: (val) {
                         setStateDialog(() {

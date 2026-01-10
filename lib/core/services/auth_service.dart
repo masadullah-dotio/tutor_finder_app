@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:tutor_finder_app/features/auth/data/models/user_model.dart';
 import 'package:tutor_finder_app/features/auth/data/models/user_role.dart';
@@ -315,8 +316,11 @@ class AuthService extends ChangeNotifier {
     if (user == null) return null;
 
     try {
-      // 1. Force reload to get latest emailVerified status from Firebase Auth
-      await user.reload();
+      // 1. Force reload to get latest emailVerified status ONLY if not currently verified
+      // This saves a network call for already verified users, speeding up startup.
+      if (!user.emailVerified) {
+        await user.reload();
+      }
       final refreshedUser = _auth.currentUser; // Get the refreshed user object
 
       final doc = await _firestore.collection('users').doc(user.uid).get();
@@ -359,4 +363,46 @@ class AuthService extends ChangeNotifier {
       return null;
     }
   }
+
+  /// Updates the current user's location in Firestore.
+  /// This is called on app start to keep location fresh.
+  Future<void> updateCurrentUserLocation() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      // Check permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+
+      // Get position
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+      );
+
+      // Update Firestore
+      await _firestore.collection('users').doc(user.uid).update({
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      if (kDebugMode) {
+        print('Location updated: ${position.latitude}, ${position.longitude}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating location: $e');
+      }
+    }
+  }
+
 }

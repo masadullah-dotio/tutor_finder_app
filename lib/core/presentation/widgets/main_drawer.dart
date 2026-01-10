@@ -9,15 +9,26 @@ import 'package:tutor_finder_app/features/auth/presentation/pages/sign_up_page.d
 import 'package:tutor_finder_app/core/utils/image_helper.dart';
 
 class DrawerItem {
-  final IconData icon;
+  final IconData? icon;
   final String title;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool isDivider;
 
   const DrawerItem({
     required this.icon,
     required this.title,
     required this.onTap,
+    this.isDivider = false,
   });
+
+  factory DrawerItem.divider() {
+    return const DrawerItem(
+      icon: null,
+      title: '',
+      onTap: null,
+      isDivider: true,
+    );
+  }
 }
 
 class MainDrawer extends StatelessWidget {
@@ -43,12 +54,12 @@ class MainDrawer extends StatelessWidget {
       child: Column(
         children: [
           // Header
-          FutureBuilder<UserModel?>(
-            future: AuthService().getCurrentUser(), // Fetch full user model
+          StreamBuilder<UserModel?>(
+            stream: AuthService().getUserStream(FirebaseAuth.instance.currentUser?.uid ?? ''),
             builder: (context, snapshot) {
               final userModel = snapshot.data;
               final displayName = userModel != null 
-                  ? '${userModel.firstName} ${userModel.lastName}' 
+                  ? '${userModel.firstName ?? ''} ${userModel.lastName ?? ''}'.trim()
                   : (user?.displayName ?? 'User');
               
               return InkWell(
@@ -59,8 +70,8 @@ class MainDrawer extends StatelessWidget {
                     orElse: () => DrawerItem(icon: Icons.error, title: '', onTap: () {}),
                   );
                   
-                  if (profileItem.title.isNotEmpty) {
-                    profileItem.onTap();
+                  if (profileItem.title.isNotEmpty && profileItem.onTap != null) {
+                    profileItem.onTap!();
                   }
                 },
                 child: Container(
@@ -80,8 +91,8 @@ class MainDrawer extends StatelessWidget {
                         backgroundImage: ImageHelper.getUserImageProvider(userModel?.profileImageUrl),
                         child: userModel?.profileImageUrl == null
                             ? Text(
-                                userModel?.firstName != null && userModel!.firstName.isNotEmpty
-                                    ? userModel.firstName[0].toUpperCase()
+                                (userModel?.firstName ?? '').isNotEmpty
+                                    ? userModel!.firstName![0].toUpperCase()
                                     : '?',
                                 style: const TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
                               )
@@ -104,7 +115,7 @@ class MainDrawer extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                           if ((user?.emailVerified ?? false) && (userModel?.isMobilePhoneVerified ?? false))
+                           if (userModel?.isEmailVerified == true && userModel?.isMobilePhoneVerified == true)
                             const Tooltip(
                               message: 'Verified User',
                               child: Icon(Icons.verified, size: 18, color: Colors.blue),
@@ -112,7 +123,7 @@ class MainDrawer extends StatelessWidget {
                           else
                             Tooltip(
                               message: 'Not Verified\n'
-                                       'Email: ${(user?.emailVerified ?? false) ? "Verified" : "Pending"}\n'
+                                       'Email: ${(userModel?.isEmailVerified ?? false) ? "Verified" : "Pending"}\n'
                                        'Phone: ${(userModel?.isMobilePhoneVerified ?? false) ? "Verified" : "Pending"}',
                               child: const Icon(Icons.verified_outlined, size: 18, color: Colors.grey),
                             ),
@@ -160,13 +171,23 @@ class MainDrawer extends StatelessWidget {
           
           // Body
           // Dynamic Body
-          ...items.map((item) => ListTile(
-            leading: Icon(item.icon),
-            title: Text(item.title),
-            onTap: item.onTap,
-          )),
+          // Body - Scrollable
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero, 
+              children: items.map((item) {
+                if (item.isDivider) {
+                  return const Divider();
+                }
+                return ListTile(
+                  leading: Icon(item.icon),
+                  title: Text(item.title),
+                  onTap: item.onTap,
+                );
+              }).toList(),
+            ),
+          ),
           
-          const Spacer(),
           const Divider(),
           
           // Footer / Logout

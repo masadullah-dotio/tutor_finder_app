@@ -3,6 +3,7 @@ import 'package:tutor_finder_app/core/routes/app_routes.dart';
 import 'package:tutor_finder_app/core/services/auth_service.dart';
 import 'package:tutor_finder_app/features/auth/data/models/user_role.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tutor_finder_app/core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,8 +14,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkAuthStatus() async {
-    // Wait minimum 2 seconds for splash aesthetics
-    await Future.delayed(const Duration(seconds: 2));
+    // Removed artificial delay for faster startup
+    // await Future.delayed(const Duration(seconds: 2));
     
     // Wait for Firebase to restore auth state (critical for Web)
     // .first will wait until the first event is emitted.
@@ -31,10 +32,18 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (mounted) {
         if (user != null) {
-          if (user.role == UserRole.student) {
-            Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
-          } else {
-            Navigator.pushReplacementNamed(context, AppRoutes.tutorDashboard);
+          switch (user.role) {
+            case UserRole.student:
+              Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+              break;
+            case UserRole.tutor:
+              Navigator.pushReplacementNamed(context, AppRoutes.tutorDashboard);
+              break;
+            case UserRole.admin:
+              Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
+              break;
+            default:
+              Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
           }
         } else {
           // Metadata mismatch or user deleted, force login
@@ -57,13 +66,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFE53935), // Primary
-              Color(0xFF8E24AA), // Secondary
+              AppColors.gradientStart,
+              AppColors.gradientEnd,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -75,17 +88,10 @@ class _SplashScreenState extends State<SplashScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.school_rounded,
-                      size: 80,
-                      color: Colors.white,
-                    ),
+                  Image.asset(
+                    'assets/images/splash_dark.png', // Using white logo for contrast on gradient
+                    height: 150, // Increased height slightly
+                    fit: BoxFit.contain, // Respect aspect ratio (height > width)
                   ),
                   const SizedBox(height: 24),
                   Text(

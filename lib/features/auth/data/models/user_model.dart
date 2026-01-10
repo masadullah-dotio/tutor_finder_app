@@ -6,8 +6,8 @@ class UserModel {
   final String uid;
   final String email;
   final String username;
-  final String firstName;
-  final String lastName;
+  final String? firstName;
+  final String? lastName;
   final String mobilePhone;
   final UserRole role;
   final String? bio;
@@ -40,8 +40,8 @@ class UserModel {
     required this.uid,
     required this.email,
     required this.username,
-    required this.firstName,
-    required this.lastName,
+    this.firstName,
+    this.lastName,
     required this.mobilePhone,
     required this.role,
     this.children = const [],
@@ -112,8 +112,8 @@ class UserModel {
       uid: map['uid'] as String? ?? '',
       email: map['email'] as String? ?? '',
       username: map['username'] as String? ?? '',
-      firstName: map['firstName'] as String? ?? '',
-      lastName: map['lastName'] as String? ?? '',
+      firstName: map['firstName'] as String?,
+      lastName: map['lastName'] as String?,
       mobilePhone: map['mobilePhone'] as String? ?? '',
       role: UserRole.fromString(map['role'] as String? ?? 'student'),
       children: List<String>.from(map['children'] ?? []),

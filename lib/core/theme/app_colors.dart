@@ -1,26 +1,32 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary (Red/Purple mix)
-  static const Color primary = Color(0xFFE53935); // Red 600
-  static const Color primaryVariant = Color(0xFFB71C1C); // Red 900
-  static const Color secondary = Color(0xFF8E24AA); // Purple 600
-  static const Color secondaryVariant = Color(0xFF4A148C); // Purple 900
+  // Primary (Gradient Start/End concept, but mapped to solid colors for Theme)
+  static const Color primary = Color(0xFFD5006D); // Vibrant Pink/Red (Gradient Start-ish)
+  static const Color primaryVariant = Color(0xFF6A1B9A); // Deep Purple (Gradient End)
+  
+  // Gradient Colors (Publicly accessible for custom widgets)
+  static const Color gradientStart = Color(0xFFFF2B68); // Bright Red-Pink
+  static const Color gradientEnd = Color(0xFF651FFF); // Deep Purple Accent
+
+  // Secondary
+  static const Color secondary = Color(0xFFFFD600); // Yellow Accent (Good contrast with Purple)
+  static const Color secondaryVariant = Color(0xFFFF6D00); // Orange
 
   // Light Theme
-  static const Color lightBackground = Colors.white;
-  static const Color lightSurface = Color(0xFFF5F5F5); // Grey 100
-  static const Color lightOnBackground = Colors.black;
-  static const Color lightOnSurface = Colors.black;
+  static const Color lightBackground = Color(0xFFF3E5F5); // Very light purple tint
+  static const Color lightSurface = Colors.white;
+  static const Color lightOnBackground = Color(0xFF212121);
+  static const Color lightOnSurface = Color(0xFF212121);
 
   // Dark Theme
-  static const Color darkBackground = Colors.black;
-  static const Color darkSurface = Color(0xFF1E1E1E); // Grey 900
-  static const Color darkOnBackground = Colors.white;
-  static const Color darkOnSurface = Colors.white;
+  static const Color darkBackground = Color(0xFF120024); // Very dark purple
+  static const Color darkSurface = Color(0xFF1E0038); // Dark purple surface
+  static const Color darkOnBackground = Color(0xFFEDE7F6);
+  static const Color darkOnSurface = Color(0xFFEDE7F6);
 
   // Status
-  static const Color error = Color(0xFFB00020);
-  static const Color success = Color(0xFF4CAF50); // Green 500
-  static const Color warning = Color(0xFFFFC107); // Amber 500
+  static const Color error = Color(0xFFD32F2F);
+  static const Color success = Color(0xFF388E3C);
+  static const Color warning = Color(0xFFFFA000);
 }

@@ -26,15 +26,68 @@ import 'package:tutor_finder_app/features/booking/presentation/pages/booking_suc
 import 'package:tutor_finder_app/features/review/presentation/pages/write_review_page.dart';
 import 'package:tutor_finder_app/features/tutor/presentation/pages/subject_tutors_page.dart';
 import 'package:tutor_finder_app/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:tutor_finder_app/features/payment/presentation/pages/payment_success_page.dart';
+import 'package:tutor_finder_app/features/payment/presentation/pages/payment_cancelled_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tutor_finder_app/features/admin/data/repositories/admin_repository_impl.dart';
+import 'package:tutor_finder_app/features/admin/domain/usecases/get_all_tutors_usecase.dart';
+import 'package:tutor_finder_app/features/admin/domain/usecases/get_all_students_usecase.dart';
+import 'package:tutor_finder_app/features/admin/domain/usecases/verify_tutor_usecase.dart';
+import 'package:tutor_finder_app/features/admin/presentation/pages/admin_dashboard.dart';
 
-class TutorFinderApp extends StatelessWidget {
+import 'package:tutor_finder_app/features/admin/domain/usecases/get_all_bookings_usecase.dart';
+import 'package:tutor_finder_app/features/admin/domain/usecases/get_all_reviews_usecase.dart';
+import 'package:tutor_finder_app/features/admin/domain/usecases/get_all_reports_usecase.dart';
+import 'package:tutor_finder_app/features/booking/data/repositories/booking_repository.dart';
+import 'package:tutor_finder_app/features/review/data/repositories/review_repository.dart';
+import 'package:tutor_finder_app/features/report/data/repositories/report_repository.dart';
+import 'package:tutor_finder_app/core/services/auth_service.dart';
+
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
+class TutorFinderApp extends StatefulWidget {
   const TutorFinderApp({super.key});
+
+  @override
+  State<TutorFinderApp> createState() => _TutorFinderAppState();
+}
+
+class _TutorFinderAppState extends State<TutorFinderApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Remove the splash screen once the widget tree is initialized
+    FlutterNativeSplash.remove();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        Provider(create: (_) => AdminRepositoryImpl(FirebaseFirestore.instance)),
+        Provider(create: (_) => BookingRepository()),
+        Provider(create: (_) => ReviewRepository()),
+        Provider(create: (_) => ReportRepository()),
+        ProxyProvider<AdminRepositoryImpl, GetAllTutorsUseCase>(
+          update: (_, repo, __) => GetAllTutorsUseCase(repo),
+        ),
+        ProxyProvider<AdminRepositoryImpl, GetAllStudentsUseCase>(
+          update: (_, repo, __) => GetAllStudentsUseCase(repo),
+        ),
+        ProxyProvider<AdminRepositoryImpl, VerifyTutorUseCase>(
+          update: (_, repo, __) => VerifyTutorUseCase(repo),
+        ),
+        ProxyProvider<AdminRepositoryImpl, GetAllBookingsUseCase>(
+          update: (_, repo, __) => GetAllBookingsUseCase(repo),
+        ),
+        ProxyProvider<AdminRepositoryImpl, GetAllReviewsUseCase>(
+          update: (_, repo, __) => GetAllReviewsUseCase(repo),
+        ),
+        ProxyProvider<AdminRepositoryImpl, GetAllReportsUseCase>(
+          update: (_, repo, __) => GetAllReportsUseCase(repo),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -59,6 +112,8 @@ class TutorFinderApp extends StatelessWidget {
                   return MaterialPageRoute(builder: (_) => const StudentDashboard());
                 case AppRoutes.tutorDashboard:
                   return MaterialPageRoute(builder: (_) => const TutorDashboard());
+                case AppRoutes.adminDashboard:
+                  return MaterialPageRoute(builder: (_) => const AdminDashboard());
                 case AppRoutes.tutorDetails:
                   final args = settings.arguments;
                   UserModel tutor;
@@ -123,7 +178,48 @@ class TutorFinderApp extends StatelessWidget {
                    );
                 case AppRoutes.notifications:
                   return MaterialPageRoute(builder: (_) => const NotificationsPage());
+                case AppRoutes.paymentSuccess:
+                  // Extract query parameters from URL for web
+                  final uri = Uri.parse(settings.name ?? '');
+                  final sessionId = uri.queryParameters['session_id'] ?? 
+                      (settings.arguments as Map<String, dynamic>?)?['session_id'];
+                  final bookingId = uri.queryParameters['booking_id'] ?? 
+                      (settings.arguments as Map<String, dynamic>?)?['booking_id'];
+                  return MaterialPageRoute(
+                    builder: (_) => PaymentSuccessPage(
+                      sessionId: sessionId,
+                      bookingId: bookingId,
+                    ),
+                  );
+                case AppRoutes.paymentCancelled:
+                  final cancelUri = Uri.parse(settings.name ?? '');
+                  final cancelBookingId = cancelUri.queryParameters['booking_id'] ?? 
+                      (settings.arguments as Map<String, dynamic>?)?['booking_id'];
+                  return MaterialPageRoute(
+                    builder: (_) => PaymentCancelledPage(
+                      bookingId: cancelBookingId,
+                    ),
+                  );
                 default:
+                  // Handle web URL paths with query parameters
+                  final routeName = settings.name;
+                  if (routeName != null && routeName.startsWith('/payment-success')) {
+                    final successUri = Uri.parse(routeName);
+                    return MaterialPageRoute(
+                      builder: (_) => PaymentSuccessPage(
+                        sessionId: successUri.queryParameters['session_id'],
+                        bookingId: successUri.queryParameters['booking_id'],
+                      ),
+                    );
+                  }
+                  if (routeName != null && routeName.startsWith('/payment-cancelled')) {
+                    final cancelledUri = Uri.parse(routeName);
+                    return MaterialPageRoute(
+                      builder: (_) => PaymentCancelledPage(
+                        bookingId: cancelledUri.queryParameters['booking_id'],
+                      ),
+                    );
+                  }
                   return MaterialPageRoute(builder: (_) => const Scaffold(body: Center(child: Text('Page not found'))));
               }
             },

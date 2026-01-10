@@ -1,10 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:tutor_finder_app/core/services/auth_service.dart';
 
-class TutorDashboardHome extends StatelessWidget {
+class TutorDashboardHome extends StatefulWidget {
   const TutorDashboardHome({super.key});
 
   @override
+  State<TutorDashboardHome> createState() => _TutorDashboardHomeState();
+}
+
+class _TutorDashboardHomeState extends State<TutorDashboardHome> {
+  String? _userName;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+    AuthService().updateCurrentUserLocation(); // Update location on app start
+  }
+
+  Future<void> _fetchUserData() async {
+    // Simulate network delay for smooth UX
+    await Future.delayed(const Duration(milliseconds: 800));
+    
+    // In a real app, you might fetch the full user model from a provider or repo
+    // For now, we'll just check FirebaseAuth for display name or basic info
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        // In a real scenario, fetch from Firestore if displayName is empty
+        _userName = 'Tutor'; 
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -27,22 +62,22 @@ class TutorDashboardHome extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Welcome back, Tutor!',
-                        style: TextStyle(
+                        'Welcome back, ${_userName ?? 'Tutor'}!',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
+                      const SizedBox(height: 8),
+                      const Text(
                         'You have 0 pending sessions today.',
                         style: TextStyle(
                           color: Colors.white70,
@@ -52,7 +87,7 @@ class TutorDashboardHome extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(Icons.query_stats, color: Colors.white, size: 48),
+                const Icon(Icons.query_stats, color: Colors.white, size: 48),
               ],
             ),
           ),
@@ -135,15 +170,15 @@ class TutorDashboardHome extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
-          const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+          Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[500]),
           const SizedBox(height: 8),
-          Text(message, style: const TextStyle(color: Colors.grey)),
+          Text(message, style: TextStyle(color: Colors.grey[500])),
         ],
       ),
     );

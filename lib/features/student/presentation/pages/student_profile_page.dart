@@ -9,6 +9,7 @@ import 'package:tutor_finder_app/core/theme/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tutor_finder_app/core/services/storage_service.dart';
 import 'package:tutor_finder_app/core/utils/image_helper.dart';
+import 'package:tutor_finder_app/core/utils/app_constants.dart';
 
 class StudentProfilePage extends StatefulWidget {
   const StudentProfilePage({super.key});
@@ -20,7 +21,9 @@ class StudentProfilePage extends StatefulWidget {
 class _StudentProfilePageState extends State<StudentProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _bioController = TextEditingController();
-  final _subjectsController = TextEditingController(); // Comma separated
+  // final _subjectsController = TextEditingController(); // Removed for Chips
+  
+  List<String> _selectedSubjects = [];
   
   bool _isLoading = false;
   UserModel? _currentUser;
@@ -40,7 +43,8 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
       if (doc.exists) {
         _currentUser = UserModel.fromMap(doc.data()!);
         _bioController.text = _currentUser?.bio ?? '';
-        _subjectsController.text = _currentUser?.subjects?.join(', ') ?? '';
+        // _subjectsController.text = _currentUser?.subjects?.join(', ') ?? '';
+        _selectedSubjects = List<String>.from(_currentUser?.subjects ?? []);
       }
     }
     if (mounted) setState(() => _isLoading = false);
@@ -49,7 +53,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
   @override
   void dispose() {
     _bioController.dispose();
-    _subjectsController.dispose();
+    // _subjectsController.dispose();
     super.dispose();
   }
 
@@ -60,15 +64,15 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
     setState(() => _isLoading = true);
 
     try {
-      final subjectsList = _subjectsController.text
+      /* final subjectsList = _subjectsController.text
           .split(',')
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)
-          .toList();
+          .toList(); */
 
       final updatedUser = _currentUser!.copyWith(
         bio: _bioController.text.trim(),
-        subjects: subjectsList,
+        subjects: _selectedSubjects,
         updatedAt: DateTime.now(),
       );
 
@@ -186,7 +190,9 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                     backgroundImage: ImageHelper.getUserImageProvider(_currentUser?.profileImageUrl),
                     child: _currentUser?.profileImageUrl == null
                         ? Text(
-                            _currentUser?.firstName[0].toUpperCase() ?? 'S',
+                            (_currentUser?.firstName ?? '').isNotEmpty 
+                                ? _currentUser!.firstName![0].toUpperCase() 
+                                : 'S',
                             style: const TextStyle(fontSize: 40, color: AppColors.primary, fontWeight: FontWeight.bold),
                           )
                         : null,
@@ -208,7 +214,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
             ),
             const SizedBox(height: 16),
             Text(
-              '${_currentUser!.firstName} ${_currentUser!.lastName}',
+              '${_currentUser!.firstName ?? ''} ${_currentUser!.lastName ?? ''}'.trim(),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             Text(
@@ -231,15 +237,36 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
             const SizedBox(height: 16),
 
             // Subjects (Interests)
-            TextFormField(
-              controller: _subjectsController,
-              decoration: const InputDecoration(
-                labelText: 'Interests / Subjects (comma separated)',
-                hintText: 'e.g. Math, Physics',
-                prefixIcon: Icon(Icons.class_outlined),
-                border: OutlineInputBorder(),
-              ),
+            // Interests (Chips)
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Interests / Subjects', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: AppConstants.subjectsList.map((subject) {
+                return FilterChip(
+                  label: Text(subject),
+                  selected: _selectedSubjects.contains(subject),
+                  onSelected: (bool selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedSubjects.add(subject);
+                      } else {
+                        _selectedSubjects.remove(subject);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            if (_selectedSubjects.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text('Add some interests to help us find tutors', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              ),
             const SizedBox(height: 16),
             
             // Location Info

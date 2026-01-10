@@ -17,6 +17,8 @@ class BookingModel {
   final String? address; // Required for home tuition
   final double? locationLat;
   final double? locationLng;
+  final String paymentStatus; // 'pending', 'paid', 'refunded'
+  final String? paymentId;
 
   BookingModel({
     required this.id,
@@ -33,6 +35,8 @@ class BookingModel {
     this.address,
     this.locationLat,
     this.locationLng,
+    this.paymentStatus = 'pending',
+    this.paymentId,
   });
 
   Map<String, dynamic> toMap() {
@@ -51,6 +55,8 @@ class BookingModel {
       if (address != null) 'address': address,
       if (locationLat != null) 'locationLat': locationLat,
       if (locationLng != null) 'locationLng': locationLng,
+      'paymentStatus': paymentStatus,
+      if (paymentId != null) 'paymentId': paymentId,
     };
   }
 
@@ -70,6 +76,8 @@ class BookingModel {
       address: map['address'],
       locationLat: map['locationLat'],
       locationLng: map['locationLng'],
+      paymentStatus: map['paymentStatus'] ?? 'pending',
+      paymentId: map['paymentId'],
     );
   }
 }
